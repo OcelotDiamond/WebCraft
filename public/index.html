@@ -7,8 +7,19 @@
         <script src="main.js" defer type="module"></script>
     </head>
     <body>
-        <canvas width="1920" height="1080">
+        <canvas>
             Your browser is not supported.
         </canvas>
+        <script>
+            function setCanvasSize() {
+                const canvas = document.getElementsByTagName('canvas')[0];
+                canvas.width = document.documentElement.clientWidth;
+                canvas.height = document.documentElement.clientHeight;
+            }
+
+            window.onresize = setCanvasSize;
+
+            setCanvasSize();
+        </script>
     </body>
 </html>

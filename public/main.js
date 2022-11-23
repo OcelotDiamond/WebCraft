@@ -1,17 +1,12 @@
-/*function resizeCanvas(canvas) {
-    canvas.height = document.documentElement.clientHeight;
-    canvas.width = document.documentElement.clientWidth;
-}*/
-
 import "./gl-matrix-min.js";
 const { mat2, mat2d, mat4, mat3, quat, quat2, vec2, vec3, vec4 } = glMatrix;
 
+function randomColor() {
+    return [Math.random(), Math.random(), Math.random()];
+}
+
 const canvas = document.querySelector('canvas');
 const gl = canvas.getContext('webgl2');
-
-// Make canvas resize properly
-//window.onresize = resizeCanvas;
-//resizeCanvas(canvas);
 
 // Check if webGL initialized properly
 if (!gl) {
@@ -23,16 +18,62 @@ gl.clearColor(1.0, 1.0, 1.0, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
 const vertexData = [
-    0, 1, 0,
-    1, -1, 0,
-    -1, -1, 0
+    // Front
+    0.5, 0.5, 0.5,
+    0.5, -.5, 0.5,
+    -.5, 0.5, 0.5,
+    -.5, 0.5, 0.5,
+    0.5, -.5, 0.5,
+    -.5, -.5, 0.5,
+    // Left
+    -.5, 0.5, 0.5,
+    -.5, -.5, 0.5,
+    -.5, 0.5, -.5,
+    -.5, 0.5, -.5,
+    -.5, -.5, 0.5,
+    -.5, -.5, -.5,
+    // Back
+    -.5, 0.5, -.5,
+    -.5, -.5, -.5,
+    0.5, 0.5, -.5,
+    0.5, 0.5, -.5,
+    -.5, -.5, -.5,
+    0.5, -.5, -.5,
+    // Right
+    0.5, 0.5, -.5,
+    0.5, -.5, -.5,
+    0.5, 0.5, 0.5,
+    0.5, 0.5, 0.5,
+    0.5, -.5, 0.5,
+    0.5, -.5, -.5,
+    // Top
+    0.5, 0.5, 0.5,
+    0.5, 0.5, -.5,
+    -.5, 0.5, 0.5,
+    -.5, 0.5, 0.5,
+    0.5, 0.5, -.5,
+    -.5, 0.5, -.5,
+    // Bottom
+    0.5, -.5, 0.5,
+    0.5, -.5, -.5,
+    -.5, -.5, 0.5,
+    -.5, -.5, 0.5,
+    0.5, -.5, -.5,
+    -.5, -.5, -.5,
 ];
 
-const colorData = [
-    1, 0, 0,
-    0, 1, 0,
-    0, 0, 1
-];
+let tempColorData = [];
+
+for (let face = 0; face < 6; face++) {
+    let faceColor = randomColor();
+    for (let vertex = 0; vertex < 6; vertex++) {
+        tempColorData.push(...faceColor);
+    }
+}
+
+console.log(tempColorData)
+
+const colorData = tempColorData;
 
 const positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -84,6 +125,7 @@ gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
 gl.useProgram(program);
+gl.enable(gl.DEPTH_TEST);
 
 const uniformLocations = {
     matrix: gl.getUniformLocation(program, 'matrix'),
@@ -91,12 +133,15 @@ const uniformLocations = {
 
 const matrix = mat4.create();
 
-mat4.translate(matrix, matrix, [0.2, 0.2, 0]);
-mat4.scale(matrix, matrix, [0.25, 0.25, 0.25]);
-mat4.rotateZ(matrix, matrix, Math.PI/2)
+mat4.scale(matrix, matrix, [0.5, 0.5, 0.5]);
 
-console.log(Math.PI)
+function loadFrame() {
+    requestAnimationFrame(loadFrame)
+    mat4.rotateX(matrix, matrix, Math.PI/2**8)
+    mat4.rotateY(matrix, matrix, Math.PI/2**9)
+    mat4.rotateZ(matrix, matrix, Math.PI/2**10)
+    gl.uniformMatrix4fv(uniformLocations.matrix, false, matrix);
+    gl.drawArrays(gl.TRIANGLES, 0, vertexData.length/3);
+}
 
-gl.uniformMatrix4fv(uniformLocations.matrix, false, matrix);
-
-gl.drawArrays(gl.TRIANGLES, 0, 3);
+loadFrame();
