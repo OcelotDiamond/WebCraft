@@ -1,12 +1,20 @@
 import "./gl-matrix-min.js";
 const { mat2, mat2d, mat4, mat3, quat, quat2, vec2, vec3, vec4 } = glMatrix;
 
+function resizeWindow() {
+    canvas.height = document.documentElement.clientHeight
+    canvas.width = document.documentElement.clientWidth
+    mat4.perspective(projectionMatrix, 75*Math.PI/180, canvas.width/canvas.height, 1e-4, 1e4);
+}
+
 function randomColor() {
     return [Math.random(), Math.random(), Math.random()];
 }
 
 const canvas = document.querySelector('canvas');
 const gl = canvas.getContext('webgl2');
+
+window.onresize = resizeWindow
 
 // Check if webGL initialized properly
 if (!gl) {
@@ -71,8 +79,6 @@ for (let face = 0; face < 6; face++) {
     }
 }
 
-console.log(tempColorData)
-
 const colorData = tempColorData;
 
 const positionBuffer = gl.createBuffer();
@@ -132,15 +138,23 @@ const uniformLocations = {
 };
 
 const matrix = mat4.create();
+const projectionMatrix = mat4.create();
+
+mat4.translate(matrix, matrix, [0, 0, -2]);
+
+mat4.perspective(projectionMatrix, 70*Math.PI/180, canvas.width/canvas.height, 1.75, 1e4);
 
 mat4.scale(matrix, matrix, [0.5, 0.5, 0.5]);
 
+const finalMatrix = mat4.create();
+
 function loadFrame() {
     requestAnimationFrame(loadFrame)
-    mat4.rotateX(matrix, matrix, Math.PI/2**8)
-    mat4.rotateY(matrix, matrix, Math.PI/2**9)
-    mat4.rotateZ(matrix, matrix, Math.PI/2**10)
-    gl.uniformMatrix4fv(uniformLocations.matrix, false, matrix);
+    mat4.rotateX(matrix, matrix, Math.PI/2**8);
+    mat4.rotateY(matrix, matrix, Math.PI/2**9);
+    mat4.rotateZ(matrix, matrix, Math.PI/2**10);
+    mat4.multiply(finalMatrix, projectionMatrix, matrix);
+    gl.uniformMatrix4fv(uniformLocations.matrix, false, finalMatrix);
     gl.drawArrays(gl.TRIANGLES, 0, vertexData.length/3);
 }
 

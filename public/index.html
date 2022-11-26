@@ -11,15 +11,9 @@
             Your browser is not supported.
         </canvas>
         <script>
-            function setCanvasSize() {
-                const canvas = document.getElementsByTagName('canvas')[0];
-                canvas.width = document.documentElement.clientWidth;
-                canvas.height = document.documentElement.clientHeight;
-            }
-
-            window.onresize = setCanvasSize;
-
-            setCanvasSize();
+            const canvas = document.getElementsByTagName('canvas')[0];
+            canvas.width = document.documentElement.clientWidth;
+            canvas.height = document.documentElement.clientHeight;
         </script>
     </body>
 </html>
