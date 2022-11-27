@@ -57,14 +57,15 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 
 let vertexData = [];
 
-vertexData.push(...drawCube(0,0,0));
-vertexData.push(...drawCube(1,0,0));
-vertexData.push(...drawCube(0,1,0));
-vertexData.push(...drawCube(1,1,0));
-vertexData.push(...drawCube(0,0,1));
-vertexData.push(...drawCube(1,0,1));
-vertexData.push(...drawCube(0,1,1));
-vertexData.push(...drawCube(1,1,1));
+const gridSize = 55;
+
+for (let i = -1*Math.floor(gridSize/2); i < Math.ceil(gridSize/2); i++) {
+    for (let j = -1*Math.floor(gridSize/2); j < Math.ceil(gridSize/2); j++) {
+        for (let k = -1*Math.floor(gridSize/2); k < Math.ceil(gridSize/2); k++) {
+            vertexData.push(...drawCube(i*2,j*2,k*2));
+        }
+    }
+}
 
 let tempColorData = [];
 
