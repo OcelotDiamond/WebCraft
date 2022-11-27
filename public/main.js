@@ -57,7 +57,7 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 
 let vertexData = [];
 
-const gridSize = 55;
+const gridSize = 15;
 
 for (let i = -1*Math.floor(gridSize/2); i < Math.ceil(gridSize/2); i++) {
     for (let j = -1*Math.floor(gridSize/2); j < Math.ceil(gridSize/2); j++) {
@@ -139,7 +139,7 @@ const viewMatrix = mat4.create();
 const projectionMatrix = mat4.create();
 
 mat4.translate(modelMatrix, modelMatrix, [0, 0, -2]);
-mat4.translate(viewMatrix, viewMatrix, [0, 0, 3]);
+mat4.translate(viewMatrix, viewMatrix, [0, 0, 3.5]);
 mat4.invert(viewMatrix, viewMatrix);
 
 mat4.perspective(projectionMatrix, 70*Math.PI/180, canvas.width/canvas.height, 1e-4, 1e4);
@@ -147,11 +147,17 @@ mat4.perspective(projectionMatrix, 70*Math.PI/180, canvas.width/canvas.height, 1
 const mvMatrix = mat4.create()
 const mvpMatrix = mat4.create();
 
+canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+
+canvas.onclick = function() {
+    canvas.requestPointerLock();
+  };
+
 function loadFrame() {
     requestAnimationFrame(loadFrame)
-    mat4.rotateX(modelMatrix, modelMatrix, Math.PI/2**8);
-    mat4.rotateY(modelMatrix, modelMatrix, Math.PI/2**9);
-    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI/2**10);
+    mat4.rotateX(viewMatrix, viewMatrix, Math.PI/2**10);
+    mat4.rotateY(viewMatrix, viewMatrix, Math.PI/2**10);
+    mat4.rotateZ(viewMatrix, viewMatrix, Math.PI/2**10);
     mat4.multiply(mvMatrix, viewMatrix, modelMatrix);
     mat4.multiply(mvpMatrix, projectionMatrix, mvMatrix);
     gl.uniformMatrix4fv(uniformLocations.modelMatrix, false, mvpMatrix);
