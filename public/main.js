@@ -1,10 +1,17 @@
-import "./gl-matrix-min.js";
 const { mat2, mat2d, mat4, mat3, quat, quat2, vec2, vec3, vec4 } = glMatrix;
 
 function resizeWindow() {
     canvas.height = document.documentElement.clientHeight
     canvas.width = document.documentElement.clientWidth
     mat4.perspective(projectionMatrix, 75*Math.PI/180, canvas.width/canvas.height, 1e-4, 1e4);
+}
+
+function mouseLockChange() {
+    if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas || document.webkitPointerLockElement === canvas) {
+        document.addEventListener("mousemove", updatePosition, false);
+    } else {
+        document.removeEventListener("mousemove", updatePosition, false);
+    }
 }
 
 function drawCube(x,y,z) {
@@ -45,6 +52,10 @@ const canvas = document.querySelector('canvas');
 const gl = canvas.getContext('webgl2');
 
 window.onresize = resizeWindow
+
+document.addEventListener('pointerlockchange', mouseLockChange, false);
+document.addEventListener('mozpointerlockchange', mouseLockChange, false);
+document.addEventListener('webkitpointerlockchange', mouseLockChange, false);
 
 // Check if webGL initialized properly
 if (!gl) {
@@ -151,13 +162,18 @@ canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointe
 
 canvas.onclick = function() {
     canvas.requestPointerLock();
-  };
+};
+
+function updatePosition(e) {
+    mat4.rotateX(viewMatrix, viewMatrix, e.movementY/300);
+    mat4.rotateY(viewMatrix, viewMatrix, e.movementX/300);
+    const rotation = quat.create();
+    mat4.getRotation(rotation, viewMatrix);
+    console.log(rotation[0]);
+}
 
 function loadFrame() {
     requestAnimationFrame(loadFrame)
-    mat4.rotateX(viewMatrix, viewMatrix, Math.PI/2**10);
-    mat4.rotateY(viewMatrix, viewMatrix, Math.PI/2**10);
-    mat4.rotateZ(viewMatrix, viewMatrix, Math.PI/2**10);
     mat4.multiply(mvMatrix, viewMatrix, modelMatrix);
     mat4.multiply(mvpMatrix, projectionMatrix, mvMatrix);
     gl.uniformMatrix4fv(uniformLocations.modelMatrix, false, mvpMatrix);

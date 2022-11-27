@@ -4,16 +4,17 @@
         <title>WebCraft</title>
         <link rel="stylesheet" href="index.css">
         <script src="gl-matrix-min.js" defer></script>
-        <script src="main.js" defer type="module"></script>
+        <script src="main.js" defer></script>
     </head>
     <body>
         <canvas>
             Your browser is not supported.
         </canvas>
         <script>
-            const canvas = document.getElementsByTagName('canvas')[0];
-            canvas.width = document.documentElement.clientWidth;
-            canvas.height = document.documentElement.clientHeight;
+            const HTMLcanvas = document.getElementsByTagName('canvas')[0];
+            HTMLcanvas.width = document.documentElement.clientWidth;
+            HTMLcanvas.height = document.documentElement.clientHeight;
+            delete HTMLcanvas;
         </script>
     </body>
 </html>
