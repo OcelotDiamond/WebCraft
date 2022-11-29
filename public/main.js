@@ -37,6 +37,10 @@ function base3(number) {
     return number - Math.floor(number/3)*3
 }
 
+function isEven(n) {
+    return !n%2;
+}
+
 function randomColor() {
     return [Math.random(), Math.random(), Math.random()];
 }
