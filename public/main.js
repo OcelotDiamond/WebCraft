@@ -83,6 +83,10 @@ function isEven(n) {
     return !(n%2)
 }
 
+function isEven(n) {
+    return !n%2;
+}
+
 function randomColor() {
     return [Math.random(), Math.random(), Math.random()];
 }
