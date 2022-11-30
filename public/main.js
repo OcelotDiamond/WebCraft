@@ -80,11 +80,7 @@ function base3(number) {
 }
 
 function isEven(n) {
-    return !(n%2)
-}
-
-function isEven(n) {
-    return !n%2;
+    return !(n%2);
 }
 
 function randomColor() {
