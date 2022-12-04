@@ -197,11 +197,12 @@ const uniformLocations = {
 gl.uniform1i(uniformLocations.textureID, 0);
 
 const modelMatrix = mat4.create();
+const originViewMatrix = mat4.create();
 const viewMatrix = mat4.create();
 const projectionMatrix = mat4.create();
 
 mat4.translate(modelMatrix, modelMatrix, [0, 0, 0]);
-mat4.translate(viewMatrix, viewMatrix, [0, 0, 0]);
+mat4.translate(originViewMatrix, originViewMatrix, [0, 0, 0]);
 mat4.invert(viewMatrix, viewMatrix);
 
 mat4.perspective(projectionMatrix, 70*Math.PI/180, canvas.width/canvas.height, 1e-4, 1e4);
@@ -215,11 +216,29 @@ canvas.onclick = function() {
     canvas.requestPointerLock();
 };
 
+let x_rot = 0;
+let y_rot = 0;
+const quarter_circle = Math.PI/2;
+const to_radian = Math.PI/180;
+const senseitivity = 0.00390625;
+
 function updatePosition(e) {
-    mat4.rotateX(viewMatrix, viewMatrix, e.movementY/300);
-    const rotation = quat.create();
-    mat4.getRotation(rotation, viewMatrix);
-    console.log(rotation);
+    x_rot += e.movementX*senseitivity
+    if (y_rot + e.movementY*to_radian*senseitivity >= -quarter_circle && y_rot + e.movementY*to_radian*senseitivity <= quarter_circle) {
+        y_rot += e.movementY*senseitivity
+    }
+    else if (y_rot + e.movementY*to_radian*senseitivity < -quarter_circle) {
+        y_rot = -quarter_circle
+    }
+    else if (y_rot + e.movementY*to_radian*senseitivity > quarter_circle) {
+        y_rot = quarter_circle
+    }
+    else {
+        throw new Error('Invalid rotation');
+    }
+
+    mat4.rotateX(viewMatrix, originViewMatrix, y_rot);
+    mat4.rotateY(viewMatrix, viewMatrix, x_rot);
 }
 
 function loadFrame() {
