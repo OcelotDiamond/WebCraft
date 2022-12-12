@@ -7,9 +7,9 @@ function resizeWindow() {
 
 function mouseLockChange() {
     if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas || document.webkitPointerLockElement === canvas) {
-        document.addEventListener("mousemove", updatePosition, false);
+        document.addEventListener("mousemove", updateCamera, false);
     } else {
-        document.removeEventListener("mousemove", updatePosition, false);
+        document.removeEventListener("mousemove", updateCamera, false);
     }
 }
 
@@ -64,6 +64,7 @@ function getTexture(url) {
         gl.generateMipmap(gl.TEXTURE_2D);
     };
 
+    image.crossOrigin = "anonymous";
     image.src = url;
     return texture;
 }
@@ -87,8 +88,17 @@ function randomColor() {
     return [Math.random(), Math.random(), Math.random()];
 }
 
+function keyDownHandler(event) {
+    activeKeys[event.key] = true;
+}
+
+function keyUpHandler(event) {
+    activeKeys[event.key] = false;
+}
+
 const canvas = document.querySelector('canvas');
 const gl = canvas.getContext('webgl2', {antialias: true});
+const activeKeys = {};
 
 window.onresize = resizeWindow
 
@@ -96,7 +106,9 @@ document.addEventListener('pointerlockchange', mouseLockChange, false);
 document.addEventListener('mozpointerlockchange', mouseLockChange, false);
 document.addEventListener('webkitpointerlockchange', mouseLockChange, false);
 
-// Check if webGL initialized properly
+document.addEventListener('keyup', keyUpHandler, false);
+document.addEventListener('keydown', keyDownHandler, false);
+
 if (!gl) {
     throw new Error('Webgl is not supported');
     //alert('Unable to initialize WebGL.\nYour browser may not support it.');
@@ -207,7 +219,8 @@ mat4.invert(viewMatrix, viewMatrix);
 
 mat4.perspective(projectionMatrix, 70*Math.PI/180, canvas.width/canvas.height, 1e-4, 1e4);
 
-const mvMatrix = mat4.create()
+const mvMatrix = mat4.create();
+const vpMatrix = mat4.create();
 const mvpMatrix = mat4.create();
 
 canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
@@ -216,34 +229,65 @@ canvas.onclick = function() {
     canvas.requestPointerLock();
 };
 
-let x_rot = 0;
-let y_rot = 0;
-const quarter_circle = Math.PI/2;
+let camera_rot = [0, 0];
+let player_pos = [0, 0, 0];
+
 const to_radian = Math.PI/180;
+const quarter_circle = 90*to_radian;
+const half_circle = Math.PI;
 const senseitivity = 0.00390625;
 
-function updatePosition(e) {
-    x_rot += e.movementX*senseitivity
-    if (y_rot + e.movementY*to_radian*senseitivity >= -quarter_circle && y_rot + e.movementY*to_radian*senseitivity <= quarter_circle) {
-        y_rot += e.movementY*senseitivity
+function updateCamera(e) {
+    const x_rot = camera_rot[0] + e.movementX*senseitivity;
+    if (x_rot >= half_circle) {
+        camera_rot[0] = -half_circle + (x_rot % half_circle);
     }
-    else if (y_rot + e.movementY*to_radian*senseitivity < -quarter_circle) {
-        y_rot = -quarter_circle
+    else if (x_rot < -half_circle) {
+        camera_rot[0] = half_circle + (x_rot % half_circle);
     }
-    else if (y_rot + e.movementY*to_radian*senseitivity > quarter_circle) {
-        y_rot = quarter_circle
+    else {
+        camera_rot[0] = x_rot;
+    }
+    const y_diff = camera_rot[1] + e.movementY*to_radian*senseitivity;
+    if (y_diff >= -quarter_circle && y_diff <= quarter_circle) {
+        camera_rot[1] += e.movementY*senseitivity;
+    }
+    else if (y_diff < -quarter_circle) {
+        camera_rot[1] = -quarter_circle;
+    }
+    else if (y_diff > quarter_circle) {
+        camera_rot[1] = quarter_circle;
     }
     else {
         throw new Error('Invalid rotation');
     }
 
-    mat4.rotateX(viewMatrix, originViewMatrix, y_rot);
-    mat4.rotateY(viewMatrix, viewMatrix, x_rot);
+    console.log(camera_rot)
+
+    mat4.rotateX(viewMatrix, originViewMatrix, camera_rot[1]);
+    mat4.rotateY(viewMatrix, viewMatrix, camera_rot[0]);
+}
+
+function updatePos() {
+    if (!!activeKeys['w']) {
+        player_pos[2]+=1.5625e-2;
+    }
+    if (!!activeKeys['s']) {
+        player_pos[2]-=1.5625e-2;
+    }
+    if (!!activeKeys['a']) {
+        player_pos[0]+=1.5625e-2;
+    }
+    if (!!activeKeys['d']) {
+        player_pos[0]-=1.5625e-2;
+    }
+    mat4.translate(vpMatrix, viewMatrix, player_pos);
 }
 
 function loadFrame() {
     requestAnimationFrame(loadFrame)
-    mat4.multiply(mvMatrix, viewMatrix, modelMatrix);
+    updatePos()
+    mat4.multiply(mvMatrix, vpMatrix, modelMatrix);
     mat4.multiply(mvpMatrix, projectionMatrix, mvMatrix);
     gl.uniformMatrix4fv(uniformLocations.modelMatrix, false, mvpMatrix);
     gl.drawArrays(gl.TRIANGLES, 0, vertexData.length/3);
