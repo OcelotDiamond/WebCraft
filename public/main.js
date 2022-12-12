@@ -89,11 +89,11 @@ function randomColor() {
 }
 
 function keyDownHandler(event) {
-    activeKeys[event.key] = true;
+    activeKeys[event.key.toLowerCase()] = true;
 }
 
 function keyUpHandler(event) {
-    activeKeys[event.key] = false;
+    activeKeys[event.key.toLowerCase()] = false;
 }
 
 const canvas = document.querySelector('canvas');
@@ -236,6 +236,7 @@ const to_radian = Math.PI/180;
 const quarter_circle = 90*to_radian;
 const half_circle = Math.PI;
 const senseitivity = 0.00390625;
+const speed = 1.5625e-1;
 
 function updateCamera(e) {
     const x_rot = camera_rot[0] + e.movementX*senseitivity;
@@ -262,24 +263,32 @@ function updateCamera(e) {
         throw new Error('Invalid rotation');
     }
 
-    console.log(camera_rot)
-
     mat4.rotateX(viewMatrix, originViewMatrix, camera_rot[1]);
     mat4.rotateY(viewMatrix, viewMatrix, camera_rot[0]);
 }
 
 function updatePos() {
     if (!!activeKeys['w']) {
-        player_pos[2]+=1.5625e-2;
+        player_pos[0]-=Math.sin(camera_rot[0])*speed;
+        player_pos[2]+=Math.cos(camera_rot[0])*speed;
     }
     if (!!activeKeys['s']) {
-        player_pos[2]-=1.5625e-2;
+        player_pos[0]+=Math.sin(camera_rot[0])*speed;
+        player_pos[2]-=Math.cos(camera_rot[0])*speed;
     }
     if (!!activeKeys['a']) {
-        player_pos[0]+=1.5625e-2;
+        player_pos[0]-=Math.sin(camera_rot[0]-quarter_circle)*speed;
+        player_pos[2]+=Math.cos(camera_rot[0]-quarter_circle)*speed;
     }
     if (!!activeKeys['d']) {
-        player_pos[0]-=1.5625e-2;
+        player_pos[0]+=Math.sin(camera_rot[0]-quarter_circle)*speed;
+        player_pos[2]-=Math.cos(camera_rot[0]-quarter_circle)*speed;
+    }
+    if (!!activeKeys[' ']) {
+        player_pos[1]-=speed;
+    }
+    if (!!activeKeys['shift']) {
+        player_pos[1]+=speed;
     }
     mat4.translate(vpMatrix, viewMatrix, player_pos);
 }
